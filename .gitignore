@@ -1,0 +1,11 @@
+.build*/
+.swiftpm/
+dist/
+.DS_Store
+.tmp/
+DerivedData/
+*.xcuserstate
+*.log
+.env
+.env.*
+!.env.example
