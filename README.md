@@ -25,7 +25,7 @@ Mac Go 是原生 Swift / AppKit 工具集合，目前包含独立窗口切换、
 - 菜单栏可显示转速、CPU 温度及图标动画；温度单位可选摄氏或华氏。
 - 手动控制需要安装本机控制服务。退出、睡眠、断联或异常状态下，会尝试恢复本工具持有的风扇控制，并保留失败恢复记录。
 
-具体机型的传感器和写入能力取决于硬件与固件。模拟测试、请求被接受和实际转速达标是不同的验证结果，见 [验证状态](docs/VALIDATION.md)。
+具体机型的传感器和写入能力取决于硬件与固件。模拟测试、请求被接受和实际转速达标是不同的验证结果，见 [验证状态](.ai/L3%23Standards/references/validation.md)。
 
 ## 系统要求
 
@@ -33,22 +33,39 @@ Mac Go 是原生 Swift / AppKit 工具集合，目前包含独立窗口切换、
 - 窗口缩略图需要 macOS **14 或更新版本**；macOS 13 仍可按图标和标题切换。
 - 从源码构建需要提供 Swift 5.9 或更新工具链及 macOS SDK 的 Xcode 环境。
 
-## 构建与安装
+## 构建、发布与本机更新
 
 ```sh
 git clone https://github.com/al90slj23/MacGo.git
 cd MacGo
-swift test
-bash scripts/build-app.sh
-bash scripts/install-local.sh
+./gogogo.sh 0         # 检查、构建并更新本机应用
 ```
 
-构建产物为 `dist/Mac Go.app`，安装位置为 `~/Applications/Mac Go.app`。安装前退出正在运行的旧版本；安装脚本会保留回退副本并刷新应用注册。
-
-默认构建使用本地临时签名，尚未公证。构建和安装应用不会安装风扇控制服务或设定转速。若已有开发者签名身份，可显式设置：
+安装位置固定为 `~/Applications/Mac Go.app`。流程先验证候选，正常退出旧版本，保留回退副本，刷新应用注册，启动并核对实际运行版本。
 
 ```sh
-CODE_SIGN_IDENTITY='Developer ID Application: …' bash scripts/build-app.sh
+./gogogo.sh plan      # 只读查看变更和目标
+./gogogo.sh 2         # 查看状态
+./gogogo.sh 3         # 只检查/构建，保存候选
+./gogogo.sh install   # 安装并启动仍有效的已验证候选
+./gogogo.sh 1 1       # 检查、提交、推送 GitHub，再更新本机应用
+```
+
+项目没有线上服务部署。GitHub 推送、本机安装运行、系统权限和具体工具功能分别核对；发布脚本不自动设定真实风扇转速。
+
+也可以单独执行 `swift test`、`bash scripts/build-app.sh` 和 `bash scripts/install-local.sh`；直接安装前需退出旧版本。构建产物为 `dist/Mac Go.app`。默认使用本地临时签名，尚未公证；显式开发者身份可通过 `CODE_SIGN_IDENTITY='Developer ID Application: …'` 传入构建或统一入口。
+
+应用更新不会自动安装风扇服务或绕过系统授权。签名改变后，从集中授权页为最终应用重新确认相应权限。
+
+## 项目知识与 ZERO
+
+项目采用 [ZERO](https://github.com/al90slj23/ZERO) v2.1.2 六层 `.ai`。入口为 [项目事实](.ai/L1%23Overview/zero-project-facts.md)、[开发指南](.ai/L1%23Overview/guide.md) 和 [规范目录](.ai/L2%23Index/toc.md)。`ZERO/` 是独立忽略的模板副本，不是应用运行依赖。
+
+首次开发环境按 [引入说明](.ai/L3%23Standards/references/zero-first-use.md) 初始化；生成工具、模型、索引和本机连接路径不提交到公开仓库。
+
+```sh
+./gogogo.sh ai status
+./gogogo.sh ai refresh
 ```
 
 ## 设置与授权
@@ -72,9 +89,9 @@ CODE_SIGN_IDENTITY='Developer ID Application: …' bash scripts/build-app.sh
 
 ## 开发与验证
 
-- [开发规范](AGENTS.md)：模块层级、权限引导、身份校验和实机验收要求。
-- [验证状态](docs/VALIDATION.md)：已有证据、适用范围与待验收项。
-- [iFan 控制行为分析](docs/reverse-engineering/ifan-control.md)：早期风扇兼容性研究。
+- [开发规范](.ai/L3%23Standards/standards/01.arch-03.native-macos.md)：模块层级、权限引导、身份校验和实机验收要求。
+- [验证状态](.ai/L3%23Standards/references/validation.md)：已有证据、适用范围与待验收项。
+- [iFan 控制行为分析](.ai/L3%23Standards/references/ifan-control.md)：早期风扇兼容性研究。
 - [第三方归属](THIRD_PARTY_NOTICES.md)：协议参考及随包许可。
 
 SwiftPM 主应用包、target、product 和可执行文件名为 `MacGo`。`ToolboxCore` 提供纯策略与测试边界，`SMCController` 负责受限 SMC 访问，`FanHelperProtocol` / `MacToolboxFanHelper` 提供控制服务协议与恢复机制。

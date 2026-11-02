@@ -25,6 +25,7 @@ import ServiceManagement
     private var lastAccessibilityTrusted = false
     private var lastScreenRecordingTrusted = false
     private var recordingShortcut = false
+    private let runtimeStatus = RuntimeStatus()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // The Dock remains a reliable reopen path, even if the menu icon is hidden.
@@ -71,12 +72,14 @@ import ServiceManagement
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(cancelSwitching), name: NSWorkspace.willSleepNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(cancelSwitching), name: NSWorkspace.sessionDidResignActiveNotification, object: nil)
         showSettings()
+        runtimeStatus.start { [weak self] in self?.fanView?.isControlServiceReady ?? false }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { showSettings(); return true }
     func applicationWillTerminate(_ notification: Notification) {
         permissionTimer?.invalidate(); permissionGuide.close(); screenGuide.close()
         switcher.stop(); fanMenu?.shutdown(); fanView.shutdown()
+        runtimeStatus.stop()
     }
     @objc private func cancelSwitching() { switcher.cancel() }
 

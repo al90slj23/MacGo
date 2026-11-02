@@ -1,0 +1,11 @@
+{
+  "version": "1.0.0",
+  "enabled": true,
+  "name": "检索索引自动补齐",
+  "description": "维护 .ai 源资料后自动补齐 QMD 与 CodeGraph 派生索引",
+  "when": { "type": "agentStop" },
+  "then": {
+    "type": "askAgent",
+    "prompt": "任务收尾：若本次任务或本会话有 .ai 原始文档变更，且尚未刷新检索索引，请从项目根目录自动执行 bash .ai/L0#Execution/workflows/local/retrieval-indexes.sh refresh。只生成/更新派生索引，不再修改源文档，不向用户索取例行刷新确认。CLI 缺失时由适配器按 L0 锁定工具链自动安装；安装或刷新失败时核对原因并处理重试，不能声称已更新。没有源资料变更、或本次只是刷新生成物时直接结束，避免循环。所有真实配置、数据库和模型缓存必须保存在 .ai/L5#Knowledge/.generated/；根 .codegraph 只能是适配器自动生成的入口软链。"
+  }
+}

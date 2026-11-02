@@ -1,67 +1,21 @@
-# Mac Go 开发规范
+# Mac Go Agent 入口
 
-## 产品范围
+先完整阅读 `.ai/L1#Overview/zero-project-facts.md`、`.ai/L1#Overview/guide.md` 和 `.ai/L2#Index/toc.md`。修改前必须阅读 `.ai/L3#Standards/standards/01.arch-03.native-macos.md`，其中完整保留原 Mac Go 的设置层级、权限、风扇安全、品牌与实机验收规则。
 
-Mac Go 是原生 macOS 工具集合。新功能作为模块加入同一个应用与设置入口，不以继续安装独立小软件代替实现。
+- 当前规则唯一源为 `.ai/L3#Standards/standards/`；根 README 面向使用者，`docs/` 仅保留历史链接入口。
+- 新任务在 L0 建立或更新规格；知识、当前规范、历史与派生检索分别归所属层，不能以旧构建或模拟结果替代当前应用验收。
+- 发布前读 `.ai/L3#Standards/standards/09.tool-01.gogogo-sh.md`：本项目仅发布到 GitHub 并更新本机应用，没有线上服务部署。
+- 保留无关改动，按审阅过的文件清单暂存；不得整仓 `git add -A`、强推或自动变基。公开内容须排除私密本机证据和第三方二进制。
 
-## 设置层级（必须遵守）
+<!-- BEGIN ZERO BOOTSTRAP -->
+## ZERO project workflow
 
-- 顶层按“通用”和各个工具分组，工具自己的功能设置是该工具下的子页。黑名单属于“窗口切换 → 黑名单”，不能成为工具箱级的开关或排除列表。
-- 语言、登录启动、菜单栏显隐等真正共享的选项放在“通用 → 基础设置”。共享视觉组件不代表共享功能状态。
-- 每个工具的启用、排除列表和功能偏好使用独立命名空间；现有黑名单保留 `windowSwitcher.excludedBundleIDs` 数据，不能被风扇或后续工具读取为全局限制。
-- “通用 → 授权”集中列出全部已实现工具实际需要的系统权限和控制服务，编号展示用途、关联工具、必需/可选、真实检测状态及逐项入口。新增权限必须进入此清单；不得为尚未实现的功能预先索取权限。
-- 工具内缺权限的提示转到集中授权页，复用真实应用图标气泡和原生系统确认。打开授权页本身不发起申请或安装；安装成功与服务真实可用应分别检测。
-- 授权页每项都直接显示自己的应用图标入口。辅助功能和屏幕录制卡片提供真实当前 `.app` 文件的拖拽源，不要求先打开气泡才能拖图标。管理员服务用图标触发原生确认，明确不能靠拖入完成服务安装。
-- 每项完成后实时显示绿色勾选图标和绿色状态文字；未完成、失效或断连时撤掉绿色完成态。颜色之外保留图形和文字，不能把“图标已投放”当作“授权完成”。
-
-## 权限引导（必须遵守）
-
-用户明确要求：授权应采用直观的图标拖拽与气泡引导，不让用户自行猜应用位置或在文件选择器里逐层寻找。
-
-1. 先说明具体功能为什么需要哪一项权限；未授权时显示模块状态，不反复弹系统对话框。
-2. 使用统一 `PermissionGuide` 气泡组件。提供当前运行应用的真实图标与可拖拽的 `.app` 文件 URL，适用的系统权限列表可直接接受拖入。
-3. 提供一键跳到**对应权限页**的按钮；不能只打开系统设置首页。权限不支持拖入时，给出该权限实际支持的最短操作。
-4. 明确告诉用户：拖入后如系统要求开启开关或确认，仍须完成。不得声称拖入等于绕过系统授权。
-5. 自动检测状态。已授权时立即更新、收起引导并启用模块；确实需要重启时提供明确的重启入口或说明。
-6. 提供“在访达中显示应用”后备入口，用户不需要知道构建路径。授权列表找不到应用时可以重新拖入。
-7. 初次启动、撤销权限、重打包后权限记录失效、没有系统设置页面响应、完成授权都要有清楚状态。
-8. 不修改 TCC 数据库、不绕过 SIP、不复制其他应用授权、不自动输入管理员密码。
-9. 将功能必须的权限与可选权限分开；窗口标题/图标切换不索取录屏，风扇读取不索取管理员权限。
-10. 应用包文件名、CFBundleName、CFBundleDisplayName 和引导中的名称必须一致；必须验证系统列表实际显示的图标，不能只验证应用内自己画的图标。
-11. 不原地覆盖正在运行的开发包后继续沿用旧授权结论。先在临时目录构建，关闭旧进程，更新到固定应用目录，刷新该应用的 Launch Services 注册，再验证最终版本的真实权限。
-12. 拖放结束只能说明文件被投放，不能显示“授权成功”；授权以当前进程的系统 API 结果为准。为“列表开关已开启但当前进程仍未授权”提供真正的重新启动入口。
-
-## 可发现性（必须遵守）
-
-- 提供有辨识度的应用图标、Dock 入口和菜单栏图标＋“Mac Go”文字。
-- 关闭设置窗口后应用仍可从 Dock 或菜单栏重新打开。不能只留下没有文字的难辨小图标。
-- 标准应用菜单提供打开设置和退出快捷键。
-
-## 风扇控制
-
-- 主程序默认只读；写入限于身份校验后的内置特权服务。
-- 用户已选择无需付费证书的本机模式。该模式须由系统管理员授权安装，服务及身份清单必须归 root 所有；XPC 双端按当前构建的精确代码签名哈希验证，不能仅相信应用名、路径、bundle ID 或裸 PID，不能用通用 sudoers 放行。
-- 本机服务更新须重新绑定当前构建，提供卸载入口；安装、实际写入与恢复验收分别记录。只读诊断和模拟测试不代替管理员安装或真实调速证据。
-- 按实际硬件报告验证范围与模式，检查固件返回及读回结果。
-- 手动控制修改前保存恢复记录；失败、断联、睡眠和退出时恢复本工具拥有的控制。恢复失败应保留记录并报告。
-- 不在常规测试中改动真实硬件。模拟测试与实机读写验收必须分开报告。
-- 主窗口和菜单栏面板必须共用一个经过身份验证的控制会话。菜单栏、滑块跟踪和系统模态期间不能暂停心跳；每个异步请求与超时须匹配连接代次和独立请求标识，旧回调不能撤销新连接。
-- 四种选定模式与硬件实际模式分别显示。图标动画、目标值或成功 ACK 不代表实际 RPM 达标；需要有限等待模式和目标共同稳定，再单独核对实际转速。
-- 恢复自动也要有限等待模式读回，不能以第一帧尚未发布就误报失败。仅在确认自动模式后清除恢复记录；恢复不得依赖温度、目标或实际 RPM 读数，不重复写入抢占其他工具。
-- 温度只显示当前设备实际有效的读数，缺失不能伪造为 0。温控规则属于风扇模块；规则编辑不会启用自定义模式。规则失效和时段外仅恢复本工具拥有的控制，不接管其他程序的手动模式。
-- 轮询不能覆盖未保存的输入、滑块或下拉草稿。命令失败必须可见且停止自动重复写入，不能通过不断重试造成风扇反复升降速。
-
-## 验证和交付
-
-运行相关测试、生成应用包并检查实际界面；区分源码已实现、编译通过、界面验证、真实功能验收。不得把模拟测试或成功写入目标值描述成实际风扇转速已经达标。
-
-窗口切换必须验证松开修饰键后，目标应用成为前台且焦点属于所选的具体窗口；发出激活请求、AXRaise 返回成功、看到列表或已枚举窗口都不能作为切换成功依据。需覆盖同一应用的两个独立窗口、跨应用、最小化恢复、反向选择和取消；没有实机证据的项目明确保持待验收。
-
-窗口缩略图是可选功能，仅为它申请屏幕录制权限；未授权时保留标题/图标切换。仅捕获选定的独立窗口，不录音、不保存截图到磁盘。窗口匹配不明确时显示图标，不能随意取同一应用的另一个窗口充当预览。权限撤销和关闭缩略图后清除内存预览。不得在快捷键同步回调里读取画面或枚举屏幕共享内容。
-
-## 品牌与公开仓库
-
-- 产品显示名和应用包名统一为 `Mac Go` / `Mac Go.app`；SwiftPM 主应用包、target、product 和可执行文件名为 `MacGo`。
-- 为接续早期开发版，内部 `local.mactoolbox.*` 标识、偏好命名空间及兼容 helper 名称按迁移实现保留；更名不能削弱签名校验或遗留无人管理的特权服务。
-- 公开仓库只包含可发布的源码、测试、资源和文档。不得提交本机构建缓存、窗口画面／标题、进程清单、签名授权清单、私密路径、凭证、第三方应用二进制或临时测试包。
-- 品牌迁移与功能修复分别记录；保留已有失败证据，不将旧构建的验收自动归给新构建。
+- Read `.ai/L1#Overview/zero-project-facts.md` and the project's existing guide first, then `.ai/L1#Overview/zero-template-guide.md` and `.ai/L2#Index/toc.md`.
+- Project facts and existing project boundaries govern adoption. Read `.ai/L2#Index/zero-onboarding.md` and reconcile template standards through `.ai/L0#Execution/specs/active/zero-onboarding/00.spec-03.tasks.md`; the first introduction remains pending until the Agent completes that audit.
+- Maintain source knowledge only in `.ai`. QMD retrieves its Markdown; CodeGraph derives relations from the project's source code. Verify retrieved claims against their owning sources.
+- With an exact path/symbol, read the relevant range directly. Unknown document topics start with a scoped QMD lex query (normally 3 results, rerank disabled); code relationships start with a narrow CodeGraph query (normally maxFiles 3). Use vector/expanded search only when needed.
+- Reuse current unchanged excerpts still visible in this conversation and treat returned current source as already read. Fetch only missing or stale ranges; normally read 40-80 lines around a document hit and print selected paths/lines/excerpts rather than whole tool objects. Required initial context, audits and complete-file logic reviews still apply.
+- If retrieval is unavailable, make at most one targeted retry, then use scoped rg and range reads. Keep the project's owning-source, host and data-boundary verification requirements.
+- Batch all `.ai` source Markdown edits and automatically run `bash .ai/L0#Execution/workflows/local/retrieval-indexes.sh refresh` once from the project root at task completion. Read-only tasks and unchanged sources do not proactively refresh; handle failures and reserve explicit repair for a diagnosed stale/broken index.
+- Inspect legacy documentation and conventions during onboarding. Business code, API names and database schemas require separately reviewed semantic migrations; bootstrap creates no such migration.
+<!-- END ZERO BOOTSTRAP -->

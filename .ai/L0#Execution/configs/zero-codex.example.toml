@@ -1,0 +1,17 @@
+# Portable reference only. Do not configure this placeholder file as a live client.
+# Generate the ignored local config and .codex/config.toml link from project root:
+# bash .ai/L0#Execution/workflows/local/zero-bootstrap.sh --target "$PWD" --prepare-only
+# The generated config uses the actual local checkout path and preserves other MCP settings.
+[mcp_servers.zero_qmd]
+command = "/bin/bash"
+args = ["/absolute/path/to/MacGo/.ai/L0#Execution/workflows/local/retrieval-indexes.sh", "qmd-mcp"]
+cwd = "/absolute/path/to/MacGo"
+startup_timeout_sec = 180
+tool_timeout_sec = 180
+
+[mcp_servers.zero_codegraph]
+command = "/bin/bash"
+args = ["/absolute/path/to/MacGo/.ai/L0#Execution/workflows/local/retrieval-indexes.sh", "codegraph-mcp"]
+cwd = "/absolute/path/to/MacGo"
+startup_timeout_sec = 180
+tool_timeout_sec = 180

@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@colbymchenry/codegraph": "1.6.2",
+    "@tobilu/qmd": "2.8.3"
+  },
+  "private": true
+}

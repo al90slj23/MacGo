@@ -50,6 +50,8 @@ for macgo_candidate in "$macgo_destination" "$macgo_legacy"; do
 done
 
 # Never stop a running app or replace the files behind its current permissions.
+require_no_running_app() {
+local macgo_process macgo_process_status
 for macgo_process in MacGo MacToolbox; do
     macgo_process_status=0
     pgrep -x "$macgo_process" >/dev/null 2>&1 || macgo_process_status=$?
@@ -61,6 +63,8 @@ for macgo_process in MacGo MacToolbox; do
         exit 1
     fi
 done
+}
+require_no_running_app
 
 mkdir -p "$macgo_install_dir"
 macgo_lock="$macgo_install_dir/.macgo-install.lock"
@@ -134,6 +138,7 @@ macgo_staged_app="$macgo_stage/Mac Go.app"
 ditto "$macgo_source" "$macgo_staged_app"
 require_macgo_bundle "$macgo_staged_app"
 codesign --verify --deep --strict "$macgo_staged_app"
+require_no_running_app
 
 # Check the exact existing paths again immediately before moving each one.
 if [[ -e "$macgo_destination" || -L "$macgo_destination" ]]; then

@@ -9,3 +9,15 @@ DerivedData/
 .env
 .env.*
 !.env.example
+/ZERO/
+/.codex/
+/.ai/L0#Execution/configs/zero-codex.toml
+/__pycache__/
+**/__pycache__/
+*.pyc
+
+# BEGIN ZERO BOOTSTRAP
+/.ai/L5#Knowledge/.generated/
+/.ai/L0#Execution/backups/
+/.codegraph
+# END ZERO BOOTSTRAP
